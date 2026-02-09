@@ -57,15 +57,15 @@ module barrelshifter32(
     input  wire [31:0] i,
     input  wire [4:0]  s, // enable bits for each stage
     input  wire        func3, // determines if shifting left
-    input  wire        is_sra, // determines if shift right arithmetic (THIS HOLDS func7 010)
+    input  wire        func7, // determines if shift right arithmetic
     output wire [31:0] o
 );
     wire [31:0] t16, t8, t4, t2;
 
-    shifter_stage #(.DIST(16)) s16 (i,   s[4], func3, is_sra, t16);
-    shifter_stage #(.DIST(8))  s8  (t16, s[3], func3, is_sra, t8);
-    shifter_stage #(.DIST(4))  s4  (t8,  s[2], func3, is_sra, t4);
-    shifter_stage #(.DIST(2))  s2  (t4,  s[1], func3, is_sra, t2);
-    shifter_stage #(.DIST(1))  s1  (t2,  s[0], func3, is_sra, o);
+    shifter_stage #(.DIST(16)) s16 (i,   s[4], func3, func7, t16);
+    shifter_stage #(.DIST(8))  s8  (t16, s[3], func3, func7, t8);
+    shifter_stage #(.DIST(4))  s4  (t8,  s[2], func3, func7, t4);
+    shifter_stage #(.DIST(2))  s2  (t4,  s[1], func3, func7, t2);
+    shifter_stage #(.DIST(1))  s1  (t2,  s[0], func3, func7, o);
 
 endmodule
