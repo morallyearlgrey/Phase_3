@@ -49,6 +49,7 @@ module ALU (
     wire [31:0] wSum;
     wire wCout; // Unused for ADD/SUB result directly, but needed for Comparator
     wire wAdderZero; // Unused
+    wire [31:0] shiftedRes; // result after shifting 
 
     LCA u_adder (
             .iDataA(iDataA),
@@ -60,6 +61,16 @@ module ALU (
         );
     // End Adder module stuff
 
+    // implements barrel shifter
+    // shifts data A by data B
+    barrelshifter32 shifting (
+        .i(iDataA),
+        .s(iDataB),
+        .func3(iFunct3),
+        .func7(iFunct7),
+        .o(shiftedRes)
+    );
+
     // --- OUTPUT MUX ---
     always @(*)
     begin
@@ -69,7 +80,7 @@ module ALU (
         3'b000:
         oData = wSum;           // ADD, SUB
         3'b001:
-        oData = 32'b00000000000000000000000000000000; // SLL Holder
+        oData = shiftedRes;     // Shift value based on func3 and given func7
         3'b010:
         oData = 32'b00000000000000000000000000000000; // SLT Holder
         3'b011:
@@ -77,7 +88,7 @@ module ALU (
         3'b100:
         oData = wXor;           // XOR
         3'b101:
-        oData = 32'b00000000000000000000000000000000; // SRL, SRA Holder
+        oData = shiftedRes; // SRL, SRA
         3'b110:
         oData = wOr;            // OR
         3'b111:

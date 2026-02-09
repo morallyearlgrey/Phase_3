@@ -1,3 +1,17 @@
+/*
+    Implements barrel shifter
+    Allows for shifting left, right, and shift left arithmetic
+    
+    Input:
+        32 bit input wire i: stores data for value to be shifted
+        5 bit s:             shift amount value, 5 total stages to accomodate 32 bit numbers
+        3 bit func3:         wire to determine is sll or srl
+        7 bit fun7:          wire to determine if srl arithemtic or not
+    
+    Output:
+        32 bit wire o: final resulting value shifted by s
+*/
+
 // multiplexer module
 module mux2 (input wire i0, i1, j, output wire o);
     wire not_j, w1, w2;
