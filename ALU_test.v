@@ -1,3 +1,7 @@
+/*
+    This file is for my own testing to use the format of the final ALU,
+    but to see if my code will be able to integrate into here smoothly
+*/
 // ALU module definition
 module ALU (
     input [31:0] iDataA, // First 32 bit input operand
@@ -34,22 +38,6 @@ module ALU (
             6-	Complement.
     */
 
-
-
-    // function multiplexer
-    // Use to select the operation based on iFunct3 and iFunct7
-
-    // Combinational logic for ALU operations
-
-
-    // --- ADDER MODULE (LCA) ---
-    // Prepare B input for subtraction (2's complement inversion)
-    // Note: The +1 is handled by iCin
-    wire [31:0] adder_b = is_sub ? ~iDataB : iDataB;  // If subtracting, perform bitwise inversion of iDataB to prepare for 2's complement addition
-    wire [31:0] wSum;
-    wire wCout; // Unused for ADD/SUB result directly, but needed for Comparator
-    wire wAdderZero; // Unused
-    
     wire [31:0] shiftedRes; // result after shifting
     wire [31:0] shamt;
     wire overflow; // detects if there is overflow
@@ -58,16 +46,6 @@ module ALU (
 
     wire is_sra; // detects if doing arithmetic operation
     assign is_sra = (iFunct3 == 3'b101) && (iFunct7[5] == 1'b1);
-
-    LCA u_adder (
-            .iDataA(iDataA),
-            .iDataB(adder_b),
-            .iCin(is_sub),
-            .oData(wSum),
-            .oCout(wCout),
-            .oZero(wAdderZero)
-        );
-    // End Adder module stuff
 
     // implements barrel shifter
     // shifts data A by data B
@@ -85,22 +63,10 @@ module ALU (
     oData = 32'b0;
 
     case (iFunct3)
-        3'b000:
-        oData = wSum;           // ADD, SUB
         3'b001:
         oData = shiftedRes;     // Shift value based on func3 and given func7
-        3'b010:
-        oData = 32'b00000000000000000000000000000000; // SLT Holder
-        3'b011:
-        oData = 32'b00000000000000000000000000000000; // SLTU Holder
-        3'b100:
-        oData = wXor;           // XOR
         3'b101:
         oData = shiftedRes; // SRL, SRA
-        3'b110:
-        oData = wOr;            // OR
-        3'b111:
-        oData = wAnd;           // AND
         default:
         oData = 32'b0;
     endcase
