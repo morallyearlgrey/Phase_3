@@ -49,15 +49,6 @@ module ALU (
     wire [31:0] wSum;
     wire wCout; // Unused for ADD/SUB result directly, but needed for Comparator
     wire wAdderZero; // Unused
-    
-    wire [31:0] shiftedRes; // result after shifting
-    wire [31:0] shamt;
-    wire overflow; // detects if there is overflow
-    assign overflow =| iDataB[31:5]; // checks if higher than 32 bits
-    assign shamt = overflow ? 32'd31 : iDataB; // assigns the shamt
-
-    wire is_sra; // detects if doing arithmetic operation
-    assign is_sra = (iFunct3 == 3'b101) && (iFunct7[5] == 1'b1);
 
     LCA u_adder (
             .iDataA(iDataA),
@@ -69,6 +60,17 @@ module ALU (
         );
     // End Adder module stuff
 
+    // -- BARREL SHIFTER MODULE ---
+    wire [31:0] shiftedRes; // result after shifting
+    wire [31:0] shamt;
+
+    wire overflow; // detects if there is overflow
+    assign overflow =| iDataB[31:5]; // checks if higher than 32 bits
+    assign shamt = overflow ? 32'd31 : iDataB; // assigns the shamt
+
+    wire is_sra; // detects if doing arithmetic operation
+    assign is_sra = (iFunct3 == 3'b101) && (iFunct7[5] == 1'b1);
+
     // implements barrel shifter
     // shifts data A by data B
     barrelshifter32 shifting (
@@ -77,6 +79,22 @@ module ALU (
         .func3(iFunct3),
         .is_sra(is_sra),
         .o(shiftedRes)
+    );
+
+    // --- SLT MODULE ---
+    wire [31:0] slt_res;
+    setLessThan(
+        .iDataA(iDataA),
+        .iDataB(iDataB),
+        .oData(sltu_res)
+    );
+
+    // --- SLT MODULE ---
+    wire [31:0] sltu_res;
+    setLessThanUnsigned(
+        .iDataA(iDataA),
+        .iDataB(iDataB),
+        .oData(sltu_res)
     );
 
     // --- OUTPUT MUX ---
@@ -90,9 +108,9 @@ module ALU (
         3'b001:
         oData = shiftedRes;     // Shift value based on func3 and given func7
         3'b010:
-        oData = 32'b00000000000000000000000000000000; // SLT Holder
+        oData = slt_res; // SLT Holder
         3'b011:
-        oData = 32'b00000000000000000000000000000000; // SLTU Holder
+        oData = sltu_res; // SLTU Holder
         3'b100:
         oData = wXor;           // XOR
         3'b101:
@@ -101,6 +119,7 @@ module ALU (
         oData = wOr;            // OR
         3'b111:
         oData = wAnd;           // AND
+        
         default:
         oData = 32'b0;
     endcase
