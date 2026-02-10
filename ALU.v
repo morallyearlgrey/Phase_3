@@ -83,15 +83,15 @@ module ALU (
 
     // --- SLT MODULE ---
     wire [31:0] slt_res;
-    setLessThan(
+    setLessThan SLTmod(
         .iDataA(iDataA),
         .iDataB(iDataB),
-        .oData(sltu_res)
+        .oData(slt_res)
     );
 
-    // --- SLT MODULE ---
+    // --- SLTU MODULE ---
     wire [31:0] sltu_res;
-    setLessThanUnsigned(
+    setLessThanUnsigned SLTUmod(
         .iDataA(iDataA),
         .iDataB(iDataB),
         .oData(sltu_res)
@@ -108,18 +108,18 @@ module ALU (
         3'b001:
         oData = shiftedRes;     // Shift value based on func3 and given func7
         3'b010:
-        oData = slt_res; // SLT Holder
+        oData = slt_res;        // SLT
         3'b011:
-        oData = sltu_res; // SLTU Holder
-        3'b100:
-        oData = wXor;           // XOR
+        oData = sltu_res;       // SLTU
+        // 3'b100:
+        // oData = wXor;           // XOR
         3'b101:
         oData = shiftedRes; // SRL, SRA
-        3'b110:
-        oData = wOr;            // OR
-        3'b111:
-        oData = wAnd;           // AND
-        
+        // 3'b110:
+        // oData = wOr;            // OR
+        // 3'b111:
+        // oData = wAnd;           // AND
+
         default:
         oData = 32'b0;
     endcase
