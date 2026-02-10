@@ -1,4 +1,4 @@
-//*
+/*
     Module for the Set Less than Unisigned instruction
     intakes input A and B
     Uses the comparator to find relationship between A and B
