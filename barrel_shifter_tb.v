@@ -13,10 +13,10 @@ module tb;
 
     // Shifter
     barrelshifter32 uut (
-        .i(data_in), 
-        .s(shamt), 
-        .func3(is_left), 
-        .func7(is_sra), 
+        .i(data_in),
+        .s(shamt),
+        .func3(is_left),
+        .func7(is_sra),
         .o(result)
     );
 

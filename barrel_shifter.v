@@ -1,7 +1,7 @@
 /*
     Implements barrel shifter
     Allows for shifting left, right, and shift left arithmetic
-    
+
     Input:
         32 bit input wire i: stores data for value to be shifted
         5 bit s:             shift amount value, 5 total stages to accomodate 32 bit numbers
@@ -27,10 +27,10 @@ module mux2 (input wire i0, i1, j, output wire o);
 endmodule
 
 module shifter_stage #(parameter DIST = 1) (
-    input  wire [31:0] i,
-    input  wire        s,       // 1 to shift, 0 to pass through
-    input  wire        func3, // holds value for func3 to determine shifting
-    input  wire        is_sra,  // holds func7...010 is sra
+    input  wire [31:0]  i,
+    input  wire         s,       // 1 to shift, 0 to pass through
+    input  wire [2:0]   func3, // holds value for func3 to determine shifting
+    input  wire         is_sra,  // holds func7...010 is sra
     output wire [31:0] o
 );
     wire [31:0] shifted_val;
@@ -58,7 +58,7 @@ module shifter_stage #(parameter DIST = 1) (
                 assign right_val = i[k + DIST];
 
             // determine l or r
-            mux2 dir_mux (right_val, left_val, func3, target_val);
+            mux2 dir_mux (left_val, right_val, func3[2], target_val); // passing fun3[2] to determine if r or l
 
             // Determine if shift or pass
             mux2 final_mux (i[k], target_val, s, o[k]);
@@ -69,17 +69,17 @@ endmodule
 // Main barrel shifter module
 module barrelshifter32(
     input  wire [31:0] i,
-    input  wire [4:0]  s, // enable bits for each stage
-    input  wire        func3, // determines if shifting left
-    input  wire        func7, // determines if shift right arithmetic
+    input  wire [31:0]  s, // enable bits for each stage
+    input  wire [2:0]   func3, // determines if shifting left
+    input  wire         is_sra, // determines if shift right arithmetic
     output wire [31:0] o
 );
     wire [31:0] t16, t8, t4, t2;
 
-    shifter_stage #(.DIST(16)) s16 (i,   s[4], func3, func7, t16);
-    shifter_stage #(.DIST(8))  s8  (t16, s[3], func3, func7, t8);
-    shifter_stage #(.DIST(4))  s4  (t8,  s[2], func3, func7, t4);
-    shifter_stage #(.DIST(2))  s2  (t4,  s[1], func3, func7, t2);
-    shifter_stage #(.DIST(1))  s1  (t2,  s[0], func3, func7, o);
+    shifter_stage #(.DIST(16)) s16 (i,   s[4], func3, is_sra, t16);
+    shifter_stage #(.DIST(8))  s8  (t16, s[3], func3, is_sra, t8);
+    shifter_stage #(.DIST(4))  s4  (t8,  s[2], func3, is_sra, t4);
+    shifter_stage #(.DIST(2))  s2  (t4,  s[1], func3, is_sra, t2);
+    shifter_stage #(.DIST(1))  s1  (t2,  s[0], func3, is_sra, o);
 
 endmodule
