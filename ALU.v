@@ -77,8 +77,10 @@ module ALU (
   wire is_sub = (iAluOp == SUB) || (iAluOp == BNE) || (iAluOp == BLT) || (iAluOp == BGE);
   wire [31:0] adder_b = is_sub ? ~iDataB : iDataB;  // If subtracting, perform bitwise inversion of iDataB to prepare for 2's complement addition
   wire [31:0] wSum;
+  /* verilator lint_off UNUSED */
   wire wCout; // Unused for ADD/SUB result directly, but needed for Comparator
   wire wAdderZero; // Unused
+  /* verilator lint_on UNUSED */
 
   LCA u_adder (
         .iDataA(iDataA),
@@ -158,29 +160,73 @@ module ALU (
   always @(*)
   begin
     oData = 32'b0;
+    oZero = 1'b0; // Default
 
     case (iAluOp)
       ADD, SUB:
+      begin
         oData = wSum;           // ADD, SUB
+        oZero = ~|oData;
+      end
       SLL, SRL, SRA:
+      begin
         oData = shiftedRes;     // Shifts
+        oZero = ~|oData;
+      end
       SLT:
+      begin
         oData = slt_res;        // SLT
+        oZero = ~|oData;
+      end
       SLTU:
+      begin
         oData = sltu_res;       // SLTU
+        oZero = ~|oData;
+      end
       XOR:
+      begin
         oData = wXor;           // XOR
+        oZero = ~|oData;
+      end
       OR:
+      begin
         oData = wOr;            // OR
+        oZero = ~|oData;
+      end
       AND:
+      begin
         oData = wAnd;           // AND
+        oZero = ~|oData;
+      end
+
+      // Branch Ops
+      // BEQ:
+      // begin
+      //   oData = wSum;    // Subtraction result
+      //   oZero = ~|oData; // 1 if Equal (result is 0)
+      // end
+      BNE:
+      begin
+        oData = wSum;    // Subtraction result
+        oZero = |oData;  // 1 if Not Equal (result is not 0)
+      end
+      BLT:
+      begin
+        oData = wSum;       // Subtraction result
+        oZero = slt_res[0]; // 1 if Less Than (A < B)
+      end
+      BGE:
+      begin
+        oData = wSum;        // Subtraction result
+        oZero = ~slt_res[0]; // 1 if Greater or Equal (A >= B)
+      end
 
       default:
-        oData = 32'b1;
+      begin
+        oData = 32'b0;
+        oZero = ~|oData;
+      end
     endcase
-
-    // Zero flag (Reduction NOR)
-    oZero = ~|oData;
   end
 
 endmodule

@@ -1,3 +1,4 @@
+/* verilator lint_off DECLFILENAME */
 // /*
 //     Comparator module compares input and output
 //     If A > B -> oData[0] = 1
@@ -13,3 +14,4 @@ module Comparator (
   assign oData[1] = (iDataA == iDataB) ? 1'b1 : 1'b0;
   assign oData[2] = (iDataA < iDataB) ? 1'b1 : 1'b0;
 endmodule
+/* verilator lint_on DECLFILENAME */

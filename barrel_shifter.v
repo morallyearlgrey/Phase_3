@@ -1,3 +1,4 @@
+/* verilator lint_off DECLFILENAME */
 // /*
 //     Implements barrel shifter
 //     Allows for shifting left, right, and shift left arithmetic
@@ -29,11 +30,13 @@ endmodule
 module shifter_stage #(parameter DIST = 1) (
     input  wire [31:0]  i,
     input  wire         s,       // 1 to shift, 0 to pass through
+    /* verilator lint_off UNUSED */
     input  wire [2:0]   func3, // holds value for func3 to determine shifting
+    /* verilator lint_on UNUSED */
     input  wire         is_sra,  // holds func7...010 is sra
     output wire [31:0] o
   );
-  wire [31:0] shifted_val;
+  // wire [31:0] shifted_val; // UNUSED
   wire fill_bit;
 
   // if shift right arithmetic (sra), then fills with signed bit i[31]
@@ -70,7 +73,9 @@ endmodule
 // Main barrel shifter module
 module barrelshifter32(
     input  wire [31:0] i,
+    /* verilator lint_off UNUSED */
     input  wire [31:0]  s, // enable bits for each stage
+    /* verilator lint_on UNUSED */
     input  wire [2:0]   func3, // determines if shifting left
     input  wire         is_sra, // determines if shift right arithmetic
     output wire [31:0] o
@@ -84,3 +89,4 @@ module barrelshifter32(
   shifter_stage #(.DIST(1))  s1  (t2,  s[0], func3, is_sra, o);
 
 endmodule
+/* verilator lint_on DECLFILENAME */

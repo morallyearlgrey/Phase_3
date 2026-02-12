@@ -1,3 +1,4 @@
+/* verilator lint_off DECLFILENAME */
 // /*
 //     Module for the Set Less than Unisigned instruction
 //     intakes input A and B, along with the result from the comparator function iSet
@@ -13,8 +14,10 @@ module setLessThan (
   // Find twos complement of each data -----
   wire [31:0] invertA;
   wire [31:0] dataAtwo; // twos complement of A
+  /* verilator lint_off UNUSED */
   wire oCout; // unused
   wire oZero; // unused
+  /* verilator lint_on UNUSED */
   assign invertA = ~iDataA;
 
   LCA adderA(
@@ -29,8 +32,10 @@ module setLessThan (
   // Find twos complement of each data -----
   wire [31:0] invertB;
   wire [31:0] dataBtwo; // twos complement of A
+  /* verilator lint_off UNUSED */
   wire oCoutB; // unused
   wire oZeroB; // unused
+  /* verilator lint_on UNUSED */
   assign invertB = ~iDataB;
 
   LCA adderB(
@@ -42,7 +47,9 @@ module setLessThan (
         .oZero(oZeroB)
       );
 
+  /* verilator lint_off UNUSED */
   wire [2:0] iSet; // holds relationship between A and B
+  /* verilator lint_on UNUSED */
 
   // NOW COMPARE A (twos comp) AND B (twos com)
   Comparator SLTcomp(
@@ -53,3 +60,4 @@ module setLessThan (
 
   assign oData = (iSet[2] == 1) ? 32'b1 : 32'b0;
 endmodule
+/* verilator lint_on DECLFILENAME */
