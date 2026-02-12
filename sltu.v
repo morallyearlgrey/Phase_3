@@ -1,10 +1,10 @@
-/*
-    Module for the Set Less than Unisigned instruction
-    intakes input A and B
-    Uses the comparator to find relationship between A and B
-    Outputs oData, either 1 or 0
-        1 if A < B, 0 otherwise
-*/
+// /*
+//     Module for the Set Less than Unisigned instruction
+//     intakes input A and B
+//     Uses the comparator to find relationship between A and B
+//     Outputs oData, either 1 or 0
+//         1 if A < B, 0 otherwise
+// */
 module setLessThanUnsigned (
     input [31:0] iDataA,
     input [31:0] iDataB,

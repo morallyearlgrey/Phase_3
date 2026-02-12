@@ -1,43 +1,71 @@
 // ALU module definition
+`include "AND.v"
+`include "barrel_shifter.v"
+`include "comparator.v"
+`include "LCA.v"
+`include "OR.v"
+`include "slt.v"
+`include "sltu.v"
+`include "XOR.v"
+
+
+// ALU module definition
 module ALU (
     input [31:0] iDataA, // First 32 bit input operand
     input [31:0] iDataB, // Second 32 bit input operand
-    input [2:0] iFunct3, // 3 bit function selection
-    input [6:0] iFunct7, // 7 bit function selection
+    input [3:0] iAluOp,  // 4 bit ALU operation code
     output reg [31:0] oData, // Output 32 bit result
     output reg oZero
   );
+
+  // ALU operation codes (from newalu.v)
+  localparam ADD  = 4'b0000;
+  localparam SUB  = 4'b1000;
+  localparam SLL  = 4'b0001;
+  localparam SRL  = 4'b1001;
+  localparam SRA  = 4'b1101;
+  localparam SLT  = 4'b0010;
+  localparam SLTU = 4'b0011;
+  localparam XOR  = 4'b0100;
+  localparam OR   = 4'b0110;
+  localparam AND  = 4'b0111;
+
+  // Branch ops (mapped to subtraction generally for flags)
+  localparam BEQ  = 4'b1000;
+  localparam BNE  = 4'b1100;
+  localparam BLT  = 4'b1010;
+  localparam BGE  = 4'b1110;
+
   // Illegal operators
   // * , / , + , - , << , >> , <<< , >>>
   // so only logic gates and no shifting
 
-  /*
-      1. imm or reg? decoder (based on op code)
-      2. implement LCA (look ahead carry adder) -> Dawn shall do this
-          - This handles Add + Sub (need two's compliment)
-      3. bit shifting (shift left and shift right) -> Eren....barrel shifting (w/o clock)
-      4. Logical (does not preserve sign) + arithmetic (preseves sign)
-          OR (Eren), AND (Dawn), NOT, XOR, Compariter
-      5. Multiplexer
+  //
+  //     1. imm or reg? decoder (based on op code)
+  //     2. implement LCA (look ahead carry adder) > Dawn shall do this
+  //          This handles Add and Sub (need two's compliment)
+  //     3. bit shifting (shift left and shift right) > Eren....barrel shifting (wo clock)
+  //     4. Logical (does not preserve sign) and arithmetic (preseves sign)
+  //         OR (Eren), AND (Dawn), NOT, XOR, Compariter
+  //     5. Multiplexer
 
 
-      Operations that ALU needs to perform
-      Arithmetic Operations:
-          1-	Addition.
-          2-	Subtraction.
-      Logic Operations:
-          1-	OR Operation
-          2-	AND Operation
-          3-	XOR Operation
-          4-	Left Shift Operation
-          5-	Right Shift Operation.
-          6-	Complement.
-  */
-
+  //     Operations that ALU needs to perform
+  //     Arithmetic Operations:
+  //         1	Addition.
+  //         2	Subtraction.
+  //     Logic Operations:
+  //         1	OR Operation
+  //         2	AND Operation
+  //         3	XOR Operation
+  //         4	Left Shift Operation
+  //         5	Right Shift Operation.
+  //         6	Complement.
+  //
 
 
   // function multiplexer
-  // Use to select the operation based on iFunct3 and iFunct7
+  // Use to select the operation based on iAluOp
 
   // Combinational logic for ALU operations
 
@@ -45,7 +73,8 @@ module ALU (
   // --- ADDER MODULE (LCA) ---
   // Prepare B input for subtraction (2's complement inversion)
   // Note: The +1 is handled by iCin
-  wire is_sub = (iFunct3 == 3'b000) && (iFunct7[5] == 1'b1);
+  // SUB, BEQ, BNE, BLT, BGE involve subtraction logic
+  wire is_sub = (iAluOp == SUB) || (iAluOp == BNE) || (iAluOp == BLT) || (iAluOp == BGE);
   wire [31:0] adder_b = is_sub ? ~iDataB : iDataB;  // If subtracting, perform bitwise inversion of iDataB to prepare for 2's complement addition
   wire [31:0] wSum;
   wire wCout; // Unused for ADD/SUB result directly, but needed for Comparator
@@ -70,14 +99,17 @@ module ALU (
   assign shamt = overflow ? 32'd31 : iDataB; // assigns the shamt
 
   wire is_sra; // detects if doing arithmetic operation
-  assign is_sra = (iFunct3 == 3'b101) && (iFunct7[5] == 1'b1);
+  assign is_sra = (iAluOp == SRA);
+
+  // Derive funct3 for barrel shifter (SLL=001, SRL=101, SRA=101)
+  wire [2:0] derived_funct3 = (iAluOp == SLL) ? 3'b001 : 3'b101;
 
   // implements barrel shifter
   // shifts data A by data B
   barrelshifter32 shifting (
                     .i(iDataA),
                     .s(shamt),
-                    .func3(iFunct3),
+                    .func3(derived_funct3),
                     .is_sra(is_sra),
                     .o(shiftedRes)
                   );
@@ -127,26 +159,24 @@ module ALU (
   begin
     oData = 32'b0;
 
-    case (iFunct3)
-      3'b000:
+    case (iAluOp)
+      ADD, SUB:
         oData = wSum;           // ADD, SUB
-      3'b001:
-        oData = shiftedRes;     // Shift value based on func3 and given func7
-      3'b010:
+      SLL, SRL, SRA:
+        oData = shiftedRes;     // Shifts
+      SLT:
         oData = slt_res;        // SLT
-      3'b011:
+      SLTU:
         oData = sltu_res;       // SLTU
-      3'b100:
+      XOR:
         oData = wXor;           // XOR
-      3'b101:
-        oData = shiftedRes; // SRL, SRA
-      3'b110:
+      OR:
         oData = wOr;            // OR
-      3'b111:
+      AND:
         oData = wAnd;           // AND
 
       default:
-        oData = 32'b0;
+        oData = 32'b1;
     endcase
 
     // Zero flag (Reduction NOR)
