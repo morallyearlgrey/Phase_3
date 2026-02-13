@@ -118,7 +118,7 @@ module ALU (
 
   // --- SLT MODULE ---
   wire [31:0] slt_res;
-  setLessThan SLTmod(
+  slt SLTmod(
                 .iDataA(iDataA),
                 .iDataB(iDataB),
                 .oData(slt_res)
