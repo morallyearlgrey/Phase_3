@@ -11,53 +11,27 @@ module setLessThan (
     input [31:0] iDataB,
     output [31:0] oData
   );
-  // Find twos complement of each data -----
-  wire [31:0] invertA;
-  wire [31:0] dataAtwo; // twos complement of A
-  /* verilator lint_off UNUSED */
-  wire oCout; // unused
-  wire oZero; // unused
-  /* verilator lint_on UNUSED */
-  assign invertA = ~iDataA;
 
-  LCA adderA(
-        .iDataA(invertA),
-        .iDataB(32'b1),
-        .iCin(1'b0),
-        .oData(dataAtwo),
-        .oCout(oCout),
-        .oZero(oZero)
-      );
-
-  // Find twos complement of each data -----
+  // Find twos complement of B -----
   wire [31:0] invertB;
   wire [31:0] dataBtwo; // twos complement of A
+  wire [31:0] diff;
   /* verilator lint_off UNUSED */
   wire oCoutB; // unused
   wire oZeroB; // unused
   /* verilator lint_on UNUSED */
   assign invertB = ~iDataB;
 
-  LCA adderB(
-        .iDataA(invertB),
-        .iDataB(32'b1),
-        .iCin(1'b0),
-        .oData(dataBtwo),
-        .oCout(oCoutB),
-        .oZero(oZeroB)
-      );
+  // Check A - B
+  LCA sub (
+        .iDataA(iDataA),
+        .iDataB(invertB),
+        .iCin(1'b1),
+        .oData(diff),
+        .oCout(oCout),
+        .oZero(oZero)
+    );
 
-  /* verilator lint_off UNUSED */
-  wire [2:0] iSet; // holds relationship between A and B
-  /* verilator lint_on UNUSED */
-
-  // NOW COMPARE A (twos comp) AND B (twos com)
-  Comparator SLTcomp(
-               .iDataA(dataAtwo),
-               .iDataB(dataBtwo),
-               .oData(iSet)
-             );
-
-  assign oData = (iSet[2] == 1) ? 32'b1 : 32'b0;
+  assign oData = {31'b0, diff[31]}; // if last bit is 1, then overflow -> negative, so A is less than
 endmodule
 /* verilator lint_on DECLFILENAME */
